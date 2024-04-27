@@ -71,8 +71,8 @@ resource "azurerm_network_interface" "nic_private" {
   }
 }
 
-resource "azurerm_network_security_group" "nsg" {
-  name                = "nsg"
+resource "azurerm_network_security_group" "nsg_public" {
+  name                = "nsg_public"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -91,7 +91,30 @@ resource "azurerm_network_security_group" "nsg" {
 
 resource "azurerm_subnet_network_security_group_association" "nsg_association" {
   subnet_id                 = azurerm_subnet.publicsubnet.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
+  network_security_group_id = azurerm_network_security_group.nsg_public.id
+}
+
+resource "azurerm_network_security_group" "nsg_private" {
+  name                = "nsg_private"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "${azurerm_network_interface.nic_public.private_ip_addresses[0]}" 
+    destination_address_prefix = "${azurerm_network_interface.nic_private.private_ip_addresses[0]}"
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "nsg_association_private" {
+  subnet_id                 = azurerm_subnet.privatesubnet.id
+  network_security_group_id = azurerm_network_security_group.nsg_private.id
 }
 
 resource "azurerm_virtual_machine" "vm_public" {
