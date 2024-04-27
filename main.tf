@@ -12,11 +12,13 @@ provider "azurerm" {
   features {}
 }
 
+# Creates resource group
 resource "azurerm_resource_group" "rg" {
   name     = "tutorialnetwork"
   location = "East US"
 }
 
+# Creates Vnet
 resource "azurerm_virtual_network" "vnet" {
   name                = "vnet"
   location            = azurerm_resource_group.rg.location
@@ -25,6 +27,7 @@ resource "azurerm_virtual_network" "vnet" {
   
 }
 
+# Creates public subnet
 resource "azurerm_subnet" "publicsubnet" {
     name           = "publicsubnet"
     resource_group_name = azurerm_resource_group.rg.name
@@ -32,6 +35,7 @@ resource "azurerm_subnet" "publicsubnet" {
     address_prefixes = ["10.0.0.0/24"]
 }
 
+# Creates private subnet
 resource "azurerm_subnet" "privatesubnet" {
     name           = "privatesubnet"
     resource_group_name = azurerm_resource_group.rg.name
@@ -39,6 +43,7 @@ resource "azurerm_subnet" "privatesubnet" {
     address_prefixes = ["10.0.1.0/24"]
 }
 
+# Creates public IP
 resource "azurerm_public_ip" "publicip" {
   name                = "publicip"
   location            = azurerm_resource_group.rg.location
@@ -46,6 +51,7 @@ resource "azurerm_public_ip" "publicip" {
   allocation_method   = "Dynamic"
 }
 
+# Creates network interface for public subnet
 resource "azurerm_network_interface" "nic_public" {
   name                = "nic_public"
   location            = azurerm_resource_group.rg.location
@@ -59,6 +65,7 @@ resource "azurerm_network_interface" "nic_public" {
   }
 }
 
+# Creates network interface for private subnet
 resource "azurerm_network_interface" "nic_private" {
   name                = "nic_private"
   location            = azurerm_resource_group.rg.location
@@ -71,6 +78,7 @@ resource "azurerm_network_interface" "nic_private" {
   }
 }
 
+# Creates network security group for public subnet
 resource "azurerm_network_security_group" "nsg_public" {
   name                = "nsg_public"
   location            = azurerm_resource_group.rg.location
@@ -89,11 +97,13 @@ resource "azurerm_network_security_group" "nsg_public" {
   }
 }
 
+# Associates network security group with public subnet
 resource "azurerm_subnet_network_security_group_association" "nsg_association" {
   subnet_id                 = azurerm_subnet.publicsubnet.id
   network_security_group_id = azurerm_network_security_group.nsg_public.id
 }
 
+# Creates network security group for private subnet
 resource "azurerm_network_security_group" "nsg_private" {
   name                = "nsg_private"
   location            = azurerm_resource_group.rg.location
@@ -112,11 +122,13 @@ resource "azurerm_network_security_group" "nsg_private" {
   }
 }
 
+# Associates network security group with private subnet
 resource "azurerm_subnet_network_security_group_association" "nsg_association_private" {
   subnet_id                 = azurerm_subnet.privatesubnet.id
   network_security_group_id = azurerm_network_security_group.nsg_private.id
 }
 
+# Creates public VM
 resource "azurerm_virtual_machine" "vm_public" {
   name                  = "vm_public"
   location              = azurerm_resource_group.rg.location
@@ -149,6 +161,7 @@ resource "azurerm_virtual_machine" "vm_public" {
   }
 }
 
+# Creates private VM
 resource "azurerm_virtual_machine" "vm_private" {
   name                  = "vm_private"
   location              = azurerm_resource_group.rg.location
