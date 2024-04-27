@@ -46,8 +46,8 @@ resource "azurerm_public_ip" "publicip" {
   allocation_method   = "Dynamic"
 }
 
-resource "azurerm_network_interface" "nic" {
-  name                = "nic"
+resource "azurerm_network_interface" "nic_public" {
+  name                = "nic_public"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -56,6 +56,18 @@ resource "azurerm_network_interface" "nic" {
     subnet_id                     = azurerm_subnet.publicsubnet.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.publicip.id
+  }
+}
+
+resource "azurerm_network_interface" "nic_private" {
+  name                = "nic_private"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  ip_configuration {
+    name                          = "ipconfig"
+    subnet_id                     = azurerm_subnet.privatesubnet.id
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -86,7 +98,7 @@ resource "azurerm_virtual_machine" "vm_public" {
   name                  = "vm_public"
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
-  network_interface_ids = [azurerm_network_interface.nic.id]
+  network_interface_ids = [azurerm_network_interface.nic_public.id]
   vm_size               = "Standard_DS1_v2"
 
   storage_image_reference {
@@ -97,10 +109,10 @@ resource "azurerm_virtual_machine" "vm_public" {
   }
 
   storage_os_disk {
-    name              = "myosdisk1"
+    name              = "osdisk1"
     caching           = "ReadWrite"
     create_option     = "FromImage"
-    managed_disk_type = "Premium_LRS"
+    managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
@@ -115,10 +127,10 @@ resource "azurerm_virtual_machine" "vm_public" {
 }
 
 resource "azurerm_virtual_machine" "vm_private" {
-  name                  = "vm"
+  name                  = "vm_private"
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
-  network_interface_ids = [azurerm_network_interface.nic.id]
+  network_interface_ids = [azurerm_network_interface.nic_private.id]
   vm_size               = "Standard_DS1_v2"
 
   storage_image_reference {
@@ -129,10 +141,10 @@ resource "azurerm_virtual_machine" "vm_private" {
   }
 
   storage_os_disk {
-    name              = "myosdisk1"
+    name              = "osdisk2"
     caching           = "ReadWrite"
     create_option     = "FromImage"
-    managed_disk_type = "Premium_LRS"
+    managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
